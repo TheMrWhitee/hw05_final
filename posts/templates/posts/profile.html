@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Профиль{% endblock %}
+{% block header %}Профиль пользователя{% endblock %}
+{% block content %}
+{% load user_filters %}
+{% load thumbnail %}
+
+<main role="main" class="container">
+    <div class="row">
+            <div class="col-md-3 mb-3 mt-1">
+                    <div class="card">
+                            <div class="card-body">
+                                    <div class="h2">
+                                        <!-- Имя автора -->
+                                        {{ author.get_full_name }}
+                                    </div>
+                                    <div class="h3 text-muted">
+                                        <!-- username автора -->
+                                        {{ author.username }}
+                                    </div>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                            <div class="h6 text-muted">
+                                            Подписчиков: XXX <br />
+                                            Подписан: XXX
+                                            </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                            <div class="h6 text-muted">
+                                                <!-- Количество записей -->
+                                                Записей: {{ post_count }}
+                                            </div>
+                                    </li>
+                            </ul>
+                    </div>
+            </div>
+
+            <div class="col-md-9">
+
+    <div class="container">
+           <h1> Последние записи пользователя</h1>
+            <!-- Вывод ленты записей -->
+                {% for post in page %}
+                  <!-- Вот он, новый include! -->
+                    {% include "posts/post_item.html" with post=post %}
+                {% endfor %}
+    </div>
+
+        <!-- Вывод паджинатора -->
+        {% if page.has_other_pages %}
+            {% include "paginator.html" with items=page paginator=paginator%}
+        {% endif %}
+{% endblock %}
+     </div>
+</main>
