@@ -47,3 +47,12 @@ class Comment(models.Model):
     text = models.TextField('Текст комментария',
                             help_text='Содержание комментария')
     created = models.DateTimeField('Добавлен', auto_now_add=True)
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='follower')
+    author = models.ForeignKey(User,
+                               on_delete=models.CASCADE,
+                               related_name='following')

@@ -3,9 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
 
-from .models import Post, Group
+from .models import Post, Group, Follow
 from .forms import PostForm, CommentForm
-
 User = get_user_model()
 
 
@@ -43,10 +42,14 @@ def new_post(request):
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
+    follower = author.follower.count()
+    following = author.following.count()
     post_list = author.posts.all()
     post_count = author.posts.count()
     context = {'post_count': post_count,
                'author': author,
+               'follower': follower,
+               'following': following,
                'page': page_paginator(request, post_list)}
     return render(request, 'posts/profile.html', context)
 
@@ -114,3 +117,23 @@ def page_not_found(request, exception):
 
 def server_error(request):
     return render(request, 'misc/500.html', status=500)
+
+
+@login_required
+def follow_index(request):
+    user = get_object_or_404(User, username=request.user)
+    post_list = user.follower.all()
+    context = {'page': page_paginator(request, post_list)}
+    return render(request, 'posts/follow.html', context)
+
+
+@login_required
+def profile_follow(request, username):
+    Follow(user=request.user, author=username)
+    return redirect('posts:profile', username)
+
+
+@login_required
+def profile_unfollow(request, username):
+    Follow.objects.filter(user=request.user, author=username).delete()
+    return redirect('posts:profile', username)
