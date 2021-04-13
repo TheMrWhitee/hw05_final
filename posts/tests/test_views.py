@@ -250,3 +250,39 @@ class CacheTest(TestCase):
         response = self.guest_client.get(reverse('posts:index'))
         page_new_cache = response.content
         self.assertNotEqual(page, page_new_cache)
+
+
+class FollowTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='Test User')
+        cls.guest_client = Client()
+        cls.authorized_client = Client()
+        cls.authorized_client.force_login(cls.user)
+        cls.post = Post.objects.create(text='Тестовый пост',
+                                       author=cls.user)
+
+    def test_authorized_client_comment(self):
+        """Только авторизованный пользователь может оставлять комментарии."""
+        response = self.guest_client.get(
+            reverse('posts:add_comment', kwargs={'username': self.user,
+                                                 'post_id': self.post.id})
+        )
+        self.assertEqual(response.status_code, 302)
+        response = self.authorized_client.get(
+            reverse('posts:add_comment', kwargs={'username': self.user,
+                                                 'post_id': self.post.id})
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_authorized_client_follow_unfollow(self):
+        """
+        Только авторизованный пользователь может подписываться и
+        удалять из подписок.
+        """
+        pass
+
+    def test_new_post_follower(self):
+        """В ленте появляется новая запись от того на кого подписан."""
+        pass
