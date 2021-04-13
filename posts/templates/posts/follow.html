@@ -3,14 +3,13 @@
 
 {% block content %}
     <div class="container">
-    {% include "posts/menu.html" with index=True %}
+
+        {% include "posts/menu.html" with index=True %}
+
            <h1>Посты авторов, на которых вы подписаны</h1>
-             {% load cache %}
-             {% cache 20 index_page %}
                 {% for post in page %}
                     {% include "posts/post_item.html" with post=post %}
                 {% endfor %}
-             {% endcache %}
                 {% if page.has_other_pages %}
                     {% include "paginator.html" with items=page paginator=paginator %}
                 {% endif %}
