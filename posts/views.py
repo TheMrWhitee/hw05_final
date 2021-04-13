@@ -58,6 +58,8 @@ def profile(request, username):
 
 def post_view(request, username, post_id):
     author = User.objects.get(username=username)
+    follower = author.follower.count()
+    following = author.following.count()
     post_count = author.posts.count()
     post = Post.objects.get(id=post_id)
     comments = post.comments.all()
@@ -65,12 +67,14 @@ def post_view(request, username, post_id):
     context = {'post_count': post_count,
                'post': post,
                'author': author,
+               'follower': follower,
+               'following': following,
                'comments': comments,
                'form': form}
     if request.method == 'POST' and form.is_valid():
         comment = form.save(commit=False)
         comment.post = post
-        comment.author = post.author
+        comment.author = request.user
         comment.save()
         return redirect('posts:post', username, post_id)
     return render(request, 'posts/post.html', context)
@@ -103,11 +107,10 @@ def post_edit(request, username, post_id):
 def add_comment(request, username, post_id):
     form = CommentForm(request.POST or None)
     post = Post.objects.get(id=post_id)
-    author = User.objects.get(username=request.user)
     if request.method == 'POST' and form.is_valid():
         comment = form.save(commit=False)
         comment.post = post
-        comment.author = author
+        comment.author = request.user
         comment.save()
         return redirect('posts:post', username, post_id)
     return render(request, 'posts/comments.html', {'form': form})
