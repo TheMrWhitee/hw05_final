@@ -10,14 +10,11 @@
 
     <div class="container">
            <h1> Последние обновления в группе</h1>
-            <!-- Вывод ленты записей -->
                 {% for post in page %}
-                  <!-- Вот он, новый include! -->
                     {% include "posts/post_item.html" with post=post %}
                 {% endfor %}
     </div>
 
-        <!-- Вывод паджинатора -->
         {% if page.has_other_pages %}
             {% include "paginator.html" with items=page paginator=paginator%}
         {% endif %}

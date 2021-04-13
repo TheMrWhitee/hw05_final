@@ -46,10 +46,12 @@ def profile(request, username):
     following = author.following.count()
     post_list = author.posts.all()
     post_count = author.posts.count()
+    current_user = request.user.username
     context = {'post_count': post_count,
                'author': author,
                'follower': follower,
                'following': following,
+               'current_user': current_user,
                'page': page_paginator(request, post_list)}
     return render(request, 'posts/profile.html', context)
 
@@ -84,7 +86,7 @@ def post_edit(request, username, post_id):
     if request.method == 'GET':
         post = get_object_or_404(Post, id=post_id)
         form = PostForm({'text': post.text, 'group': post.group_id})
-        return render(request, 'posts/new.html', {'form': form})
+        return render(request, 'posts/new.html', {'form': form, 'post': post})
 
     if request.method == 'POST':
         form = PostForm(request.POST)
@@ -129,11 +131,18 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    Follow(user=request.user, author=username)
+    author = get_object_or_404(User, username=username)
+    if author != request.user and not (
+            Follow.objects.filter(user=request.user, author=author).exists()
+    ):
+        follow = Follow(user=request.user, author=author)
+        follow.save()
+        return redirect('posts:profile', username)
     return redirect('posts:profile', username)
 
 
 @login_required
 def profile_unfollow(request, username):
-    Follow.objects.filter(user=request.user, author=username).delete()
+    author = get_object_or_404(User, username=username)
+    Follow.objects.filter(user=request.user, author=author).delete()
     return redirect('posts:profile', username)
