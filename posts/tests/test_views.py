@@ -62,7 +62,9 @@ class PostPagesTests(TestCase):
         При создании поста с указанием группы,
         этот пост появляется на странице этой группы.
         """
-        response = self.authorized_client.get('/group/test-slug/')
+        response = self.authorized_client.get(
+            reverse('posts:group_posts', kwargs={'slug': 'test-slug'})
+        )
         test_group = response.context['group']
         test_post = response.context['page'][0].__str__()
         self.assertEqual(test_group, self.group)
@@ -70,7 +72,7 @@ class PostPagesTests(TestCase):
 
     def test_context_in_template_new_post(self):
         """Шаблон new сформирован с правильным контекстом."""
-        response = self.authorized_client.get('/new/')
+        response = self.authorized_client.get(reverse('posts:new_post'))
 
         form_fields = {'group': forms.fields.ChoiceField,
                        'text': forms.fields.CharField}
@@ -94,7 +96,9 @@ class PostPagesTests(TestCase):
 
     def test_context_in_template_profile(self):
         """Шаблон profile сформирован с правильным контекстом."""
-        response = self.authorized_client.get(f'/{self.user.username}/')
+        response = self.authorized_client.get(
+            reverse('posts:profile', kwargs={'username': self.user.username})
+        )
         profile = {'post_count': self.user.posts.count(),
                    'author': self.post.author}
 
@@ -109,7 +113,8 @@ class PostPagesTests(TestCase):
     def test_context_in_template_post(self):
         """Шаблон post сформирован с правильным контекстом."""
         response = self.authorized_client.get(
-            f'/{self.user.username}/{self.post.id}/'
+            reverse('posts:post', kwargs={'username': self.user.username,
+                                          'post_id': self.post.id})
         )
 
         profile = {'post_count': self.user.posts.count(),
@@ -126,7 +131,7 @@ class PostPagesTests(TestCase):
         При создании поста с указанием группы,
         этот пост НЕ попал в группу, для которой не был предназначен.
         """
-        response = self.authorized_client.get('/')
+        response = self.authorized_client.get(reverse('posts:index'))
         post = response.context['page'][0]
         group = post.group
         self.assertEqual(group, self.group)
@@ -227,7 +232,8 @@ class PostImagesTests(TestCase):
         На странице поста изображение передаётся в словаре context.
         """
         response = self.guest_client.get(
-            f'/{self.user.username}/{self.post.id}/'
+            reverse('posts:post', kwargs={'username': self.user.username,
+                                          'post_id': self.post.id})
         )
         self.assertTrue(response.context['post'].image)
 
@@ -277,23 +283,31 @@ class FollowTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    def test_authorized_client_follow_unfollow(self):
-        """
-        Только авторизованный пользователь может подписываться и
-        удалять из подписок.
-        """
+    def test_authorized_client_follow(self):
+        """Только авторизованный пользователь может подписываться."""
         self.authorized_client.get(
             reverse('posts:profile_follow', kwargs={'username': self.author})
         )
         follow = Follow.objects.all().count()
         self.assertEqual(follow, 1)
-        self.authorized_client.get(
+
+        self.guest_client.get(
+            reverse('posts:profile_follow', kwargs={'username': self.author})
+        )
+        follow = Follow.objects.all().count()
+        self.assertEqual(follow, 1)
+
+    def test_authorized_client_unfollow(self):
+        """Только авторизованный пользователь может удалять из подписок."""
+        Follow.objects.create(user=self.user, author=self.author)
+        self.guest_client.get(
             reverse('posts:profile_unfollow', kwargs={'username': self.author})
         )
         follow = Follow.objects.all().count()
-        self.assertEqual(follow, 0)
-        self.guest_client.get(
-            reverse('posts:profile_follow', kwargs={'username': self.author})
+        self.assertEqual(follow, 1)
+
+        self.authorized_client.get(
+            reverse('posts:profile_unfollow', kwargs={'username': self.author})
         )
         follow = Follow.objects.all().count()
         self.assertEqual(follow, 0)
