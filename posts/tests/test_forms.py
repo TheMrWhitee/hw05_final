@@ -62,7 +62,8 @@ class PostFormTests(TestCase):
         form_data = {'text': 'Тестовый пост из формы',
                      'image': 'text file'}
         response = self.authorized_client.post(reverse('posts:new_post'),
-                                               data=form_data)
+                                               data=form_data,
+                                               follow=True)
         self.assertFormError(response, 'form', 'image', 'image only')
 
     def test_edit_post_in_form(self):
