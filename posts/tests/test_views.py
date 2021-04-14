@@ -9,7 +9,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings
 from django.core.cache import cache
 
-from posts.models import Group, Post
+from posts.models import Group, Post, Follow
 
 User = get_user_model()
 
@@ -257,6 +257,7 @@ class FollowTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username='Test User')
+        cls.author = User.objects.create_user(username='Author')
         cls.guest_client = Client()
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.user)
@@ -281,8 +282,32 @@ class FollowTest(TestCase):
         Только авторизованный пользователь может подписываться и
         удалять из подписок.
         """
-        pass
+        self.authorized_client.get(
+            reverse('posts:profile_follow', kwargs={'username': self.author})
+        )
+        follow = Follow.objects.all().count()
+        self.assertEqual(follow, 1)
+        self.authorized_client.get(
+            reverse('posts:profile_unfollow', kwargs={'username': self.author})
+        )
+        follow = Follow.objects.all().count()
+        self.assertEqual(follow, 0)
+        self.guest_client.get(
+            reverse('posts:profile_follow', kwargs={'username': self.author})
+        )
+        follow = Follow.objects.all().count()
+        self.assertEqual(follow, 0)
 
     def test_new_post_follower(self):
         """В ленте появляется новая запись от того на кого подписан."""
-        pass
+        self.authorized_client.get(
+            reverse('posts:profile_follow', kwargs={'username': self.author})
+        )
+        Post.objects.create(text='Пост для ленты', author=self.author)
+        Post.objects.create(text='Пост для главной', author=self.user)
+        response = self.authorized_client.get(reverse('posts:follow_index'))
+        count = len(response.context['page'])
+        self.assertEqual(count, 1)
+        author = response.context['page'][0].author
+        self.assertEqual(author, self.author)
+
