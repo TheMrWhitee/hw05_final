@@ -29,6 +29,10 @@ class PostFormTests(TestCase):
                                           content=cls.small_gif,
                                           content_type='image/gif')
 
+        # cls.text_file = SimpleUploadedFile(name='not_image.txt',
+        #                                    content='some text',
+        #                                    content_type='text/txt')
+
         cls.author = User.objects.create_user(username='TestUser')
         cls.post = Post.objects.create(author=cls.author,
                                        text='Тестовый пост')
@@ -56,6 +60,14 @@ class PostFormTests(TestCase):
                      'image': self.uploaded}
         self.authorized_client.post(reverse('posts:new_post'), data=form_data)
         self.assertEqual(Post.objects.count(), post_count + 1)
+
+    def test_create_post_with_not_image_file_in_form(self):
+        """Нельзя загрузить другой файл вместо картинки."""
+        form_data = {'text': 'Тестовый пост из формы',
+                     'image': 'some text'}
+        response = self.authorized_client.post(reverse('posts:new_post'),
+                                               data=form_data)
+        self.assertFormError(response, 'form', 'image', 'текст ошибки')
 
     def test_edit_post_in_form(self):
         """проверка редактирования поста."""

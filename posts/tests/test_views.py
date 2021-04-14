@@ -89,10 +89,8 @@ class PostPagesTests(TestCase):
                     kwargs={'username': self.user.username,
                             'post_id': self.post.id}),
         )
-        self.assertEqual(response.context['form'].cleaned_data['text'],
+        self.assertEqual(response.context['post'].text,
                          self.post.text)
-        self.assertEqual(response.context['form'].cleaned_data['group'],
-                         self.post.group)
 
     def test_context_in_template_profile(self):
         """Шаблон profile сформирован с правильным контекстом."""
