@@ -310,4 +310,3 @@ class FollowTest(TestCase):
         self.assertEqual(count, 1)
         author = response.context['page'][0].author
         self.assertEqual(author, self.author)
-
