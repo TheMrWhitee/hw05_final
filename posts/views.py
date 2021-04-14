@@ -61,7 +61,7 @@ def post_view(request, username, post_id):
     follower = author.follower.count()
     following = author.following.count()
     post_count = author.posts.count()
-    post = Post.objects.get(id=post_id)
+    post = get_object_or_404(Post, id=post_id)
     comments = post.comments.all()
     form = CommentForm(request.POST or None)
     context = {'post_count': post_count,
@@ -83,30 +83,23 @@ def post_view(request, username, post_id):
 @login_required
 def post_edit(request, username, post_id):
     user = get_object_or_404(User, username=username)
-
+    post = get_object_or_404(Post, id=post_id)
+    form = PostForm(request.POST or None,
+                    files=request.FILES or None,
+                    instance=post)
     if request.user != user:
         return redirect('posts:post', username, post_id)
-
     if request.method == 'GET':
-        post = get_object_or_404(Post, id=post_id)
-        form = PostForm({'text': post.text, 'group': post.group_id})
         return render(request, 'posts/new.html', {'form': form, 'post': post})
-
-    if request.method == 'POST':
-        form = PostForm(request.POST)
-        if form.is_valid():
-            post = Post.objects.get(id=post_id)
-            form = PostForm(request.POST,
-                            files=request.FILES or None,
-                            instance=post)
-            form.save()
-            return redirect('posts:post', username, post_id)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('posts:post', username, post_id)
 
 
 @login_required
 def add_comment(request, username, post_id):
     form = CommentForm(request.POST or None)
-    post = Post.objects.get(id=post_id)
+    post = get_object_or_404(Post, id=post_id)
     if request.method == 'POST' and form.is_valid():
         comment = form.save(commit=False)
         comment.post = post
@@ -134,11 +127,8 @@ def follow_index(request):
 @login_required
 def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
-    if author != request.user and not (
-            Follow.objects.filter(user=request.user, author=author).exists()
-    ):
-        follow = Follow(user=request.user, author=author)
-        follow.save()
+    if author != request.user:
+        Follow.objects.get_or_create(user=request.user, author=author)
         return redirect('posts:profile', username)
     return redirect('posts:profile', username)
 
