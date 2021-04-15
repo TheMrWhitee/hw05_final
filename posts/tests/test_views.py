@@ -2,7 +2,7 @@ import shutil
 import tempfile
 
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django import forms
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -12,6 +12,8 @@ from django.core.cache import cache
 from posts.models import Group, Post, Follow
 
 User = get_user_model()
+
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
 
 class PostPagesTests(TestCase):
@@ -174,11 +176,11 @@ class ErrorPagesTest(TestCase):
                 self.assertEqual(response.status_code, 404)
 
 
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostImagesTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
         cls.small_gif = (b'\x47\x49\x46\x38\x39\x61\x02\x00'
                          b'\x01\x00\x80\x00\x00\x00\x00\x00'
@@ -210,7 +212,7 @@ class PostImagesTests(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
         super().tearDownClass()
 
     def setUp(self):

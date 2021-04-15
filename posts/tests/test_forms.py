@@ -2,7 +2,7 @@ import shutil
 import tempfile
 
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings
@@ -11,12 +11,14 @@ from posts.models import Post
 
 User = get_user_model()
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostFormTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
         cls.small_gif = (b'\x47\x49\x46\x38\x39\x61\x02\x00'
                          b'\x01\x00\x80\x00\x00\x00\x00\x00'
@@ -39,7 +41,7 @@ class PostFormTests(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
         super().tearDownClass()
 
     def setUp(self):
@@ -68,7 +70,7 @@ class PostFormTests(TestCase):
         response = self.authorized_client.post(reverse('posts:new_post'),
                                                data=form_data,
                                                follow=True)
-        self.assertFormError(response, 'form', 'image', 'image only')
+        self.assertFormError(response, 'form', 'image', None)
 
     def test_edit_post_in_form(self):
         """проверка редактирования поста."""
