@@ -70,7 +70,8 @@ class PostFormTests(TestCase):
         response = self.authorized_client.post(reverse('posts:new_post'),
                                                data=form_data,
                                                follow=True)
-        self.assertFormError(response, 'form', 'image', None)
+        error = 'Отправленный файл пуст.'
+        self.assertFormError(response, 'form', 'image', error)
 
     def test_edit_post_in_form(self):
         """проверка редактирования поста."""
