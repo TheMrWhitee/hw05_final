@@ -24,7 +24,6 @@ class PostPagesTests(TestCase):
         cls.group = Group.objects.create(title='Тестовое название',
                                          slug='test-slug',
                                          description='Тестовое описание')
-
         cls.post = Post.objects.create(
             text='Тестовый пост длинной более 15 символов',
             author=cls.user,
@@ -75,10 +74,8 @@ class PostPagesTests(TestCase):
     def test_context_in_template_new_post(self):
         """Шаблон new сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('posts:new_post'))
-
         form_fields = {'group': forms.fields.ChoiceField,
                        'text': forms.fields.CharField}
-
         for value, expected in form_fields.items():
             with self.subTest(value=value):
                 form_field = response.context['form'].fields[value]
@@ -101,12 +98,10 @@ class PostPagesTests(TestCase):
         )
         profile = {'post_count': self.user.posts.count(),
                    'author': self.post.author}
-
         for value, expected in profile.items():
             with self.subTest(value=value):
                 context = response.context[value]
                 self.assertEqual(context, expected)
-
         test_page = response.context['page'][0]
         self.assertEqual(test_page, self.user.posts.all()[0])
 
@@ -116,11 +111,9 @@ class PostPagesTests(TestCase):
             reverse('posts:post', kwargs={'username': self.user.username,
                                           'post_id': self.post.id})
         )
-
         profile = {'post_count': self.user.posts.count(),
                    'author': self.post.author,
                    'post': self.post}
-
         for value, expected in profile.items():
             with self.subTest(value=value):
                 context = response.context[value]
@@ -181,29 +174,23 @@ class PostImagesTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-
         cls.small_gif = (b'\x47\x49\x46\x38\x39\x61\x02\x00'
                          b'\x01\x00\x80\x00\x00\x00\x00\x00'
                          b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
                          b'\x00\x00\x00\x2C\x00\x00\x00\x00'
                          b'\x02\x00\x01\x00\x00\x02\x02\x0C'
                          b'\x0A\x00\x3B')
-
         cls.uploaded = SimpleUploadedFile(name='small.gif',
                                           content=cls.small_gif,
                                           content_type='image/gif')
-
         cls.user = User.objects.create_user(username='TestUser2')
-
         cls.group = Group.objects.create(title='Тестовое название',
                                          slug='test-slug2',
                                          description='Тестовое описание')
-
         cls.post = Post.objects.create(text='Тестовый пост с картинкой',
                                        author=cls.user,
                                        group=cls.group,
                                        image=cls.uploaded)
-
         cls.pages_names = [reverse('posts:index'),
                            reverse('posts:profile',
                                    kwargs={'username': 'TestUser2'}),
@@ -305,7 +292,6 @@ class FollowTest(TestCase):
         )
         follow = Follow.objects.all().count()
         self.assertEqual(follow, 1)
-
         self.authorized_client.get(
             reverse('posts:profile_unfollow', kwargs={'username': self.author})
         )
