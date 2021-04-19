@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.widgets import Textarea
 
-from .models import Post, Comment
+from .models import Comment, Post
 
 
 class PostForm(forms.ModelForm):
