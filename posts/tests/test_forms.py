@@ -29,7 +29,7 @@ class PostFormTests(TestCase):
                                           content=cls.small_gif,
                                           content_type='image/gif')
         cls.text_file = SimpleUploadedFile(name='text.txt',
-                                           content='',
+                                           content='просто текст'.encode(),
                                            content_type='text/plain')
         cls.author = User.objects.create_user(username='TestUser')
         cls.post = Post.objects.create(author=cls.author,
@@ -66,7 +66,9 @@ class PostFormTests(TestCase):
         response = self.authorized_client.post(reverse('posts:new_post'),
                                                data=form_data,
                                                follow=True)
-        error = 'Отправленный файл пуст.'
+        error = ('Загрузите правильное изображение. '
+                 'Файл, который вы загрузили, поврежден '
+                 'или не является изображением.')
         self.assertFormError(response, 'form', 'image', error)
 
     def test_edit_post_in_form(self):
