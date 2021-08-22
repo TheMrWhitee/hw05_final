@@ -31,5 +31,5 @@ Python 3.7+, Django 2.2.6, unittest, pytest
 ## Тесты
 #### Тесты запускаются командой:
     python manage.py test
-#### или командой
+#### или командой:
     pytest
