@@ -11,7 +11,7 @@ Python 3.7+, Django 2.2.6, unittest, pytest
 #### Активируйте виртуальное окружение:
     . venv/Scripts/activate
 
-#### Установите зависимости:
+#### Установите необходимые зависимости:
     pip install -r requirements.txt
 
 #### Примените миграции:
